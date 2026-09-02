@@ -2,8 +2,6 @@
 
 智能制造生产管理与 AI 辅助决策系统。面向制造企业生产场景，覆盖生产订单、设备状态、物料库存、异常闭环和生产看板，并集成基于 Tool Calling 的 AI 助手。
 
-> 面试介绍：这是一个轻量级 MES 与工业 AI Agent。Agent 会区分实时业务查询、业务写操作和设备知识问题，分别调用 MES Tools 或工业 RAG，并保留完整调用轨迹和操作审计。
-
 ![生产总览](docs/dashboard-final.png)
 
 ![工业 AI Agent](docs/ai-agent.png)
