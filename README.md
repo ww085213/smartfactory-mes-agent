@@ -53,6 +53,13 @@ npm run dev
 
 打开 <http://localhost:5173>。后端默认运行在 <http://localhost:3000>，使用 20 个订单、10 台设备、20 种物料的内置演示数据。演示模式的数据在后端重启后恢复初始状态。
 
+Windows 用户也可以直接双击项目根目录的 `启动 SmartFactory.bat`，它会自动启动服务并打开浏览器。若使用命令提示符（CMD），执行：
+
+```bat
+cd /d "C:\Users\ww\Documents\Codex\2026-09-02\mes-3-5-ai-10-14\outputs\smartfactory-mes"
+npm run dev
+```
+
 演示账户：
 
 ```text
