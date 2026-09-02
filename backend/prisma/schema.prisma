@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  PAUSED
+}
+
+enum EquipmentStatus {
+  RUNNING
+  STOPPED
+  FAULT
+  MAINTENANCE
+}
+
+enum AlertLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  PROCESSING
+  RESOLVED
+}
+
+enum AgentActionType {
+  QUERY
+  MUTATION
+  RAG
+}
+
+enum AgentActionStatus {
+  SUCCESS
+  FAILED
+}
+
+model ProductionOrder {
+  id                Int                @id @default(autoincrement())
+  orderNo           String             @unique @map("order_no")
+  productName       String             @map("product_name")
+  quantity          Int
+  completedQuantity Int                @default(0) @map("completed_quantity")
+  status            OrderStatus        @default(PENDING)
+  startDate         DateTime           @map("start_date") @db.Date
+  deadline          DateTime           @db.Date
+  records           ProductionRecord[]
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([deadline])
+  @@map("production_orders")
+}
+
+model Equipment {
+  id              Int             @id @default(autoincrement())
+  equipmentNo     String          @unique @map("equipment_no")
+  name            String
+  status          EquipmentStatus @default(STOPPED)
+  productionLine  String          @map("production_line")
+  runtimeHours    Float           @default(0) @map("runtime_hours")
+  utilizationRate Float           @default(0) @map("utilization_rate")
+  alerts          Alert[]
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([productionLine])
+  @@map("equipment")
+}
+
+model Inventory {
+  id           Int      @id @default(autoincrement())
+  materialNo   String   @unique @map("material_no")
+  materialName String   @map("material_name")
+  quantity     Int
+  safetyStock  Int      @map("safety_stock")
+  unit         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([quantity])
+  @@map("inventory")
+}
+
+model Alert {
+  id          Int         @id @default(autoincrement())
+  equipmentId Int?        @map("equipment_id")
+  alertType   String      @map("alert_type")
+  description String      @db.VarChar(500)
+  level       AlertLevel
+  status      AlertStatus @default(OPEN)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  equipment   Equipment?  @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([level, createdAt])
+  @@map("alerts")
+}
+
+model ProductionRecord {
+  id              Int             @id @default(autoincrement())
+  orderId         Int             @map("order_id")
+  date            DateTime        @db.Date
+  plannedQuantity Int             @map("planned_quantity")
+  actualQuantity  Int             @map("actual_quantity")
+  order           ProductionOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, date])
+  @@index([date])
+  @@map("production_records")
+}
+
+model AgentAction {
+  id         Int               @id @default(autoincrement())
+  toolName   String            @map("tool_name")
+  actionType AgentActionType   @map("action_type")
+  arguments  Json
+  result     Json?
+  status     AgentActionStatus @default(SUCCESS)
+  username   String?
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([actionType, status])
+  @@map("agent_actions")
+}
