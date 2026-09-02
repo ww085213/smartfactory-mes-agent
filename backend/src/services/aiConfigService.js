@@ -13,8 +13,9 @@ function publicConfig() {
     baseUrl: config.ai.baseUrl,
     model: config.ai.model,
     mode: config.ai.apiKey ? 'llm' : 'local',
+    configurable: !config.publicDemo,
     keyConfigured: Boolean(config.ai.apiKey),
-    maskedKey: maskKey(config.ai.apiKey)
+    maskedKey: config.publicDemo ? '' : maskKey(config.ai.apiKey)
   }
 }
 

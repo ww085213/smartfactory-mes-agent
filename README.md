@@ -71,6 +71,14 @@ npm start
 
 打开 <http://localhost:3000>，Express 会同时托管构建后的前端。
 
+## 免费在线部署
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fww085213%2Fsmartfactory-mes-agent)
+
+仓库内置 `render.yaml`，使用 Render Free Web Service、Demo 数据和新加坡区域。首次创建 Blueprint 时需要在 Render 页面填写 `LLM_API_KEY`；不填写模型 Key 时，系统仍可使用本地 Agent 与工业 RAG。
+
+线上默认启用 `PUBLIC_DEMO_MODE=true`：所有 CRUD、设备状态写入和模型配置修改均被服务端禁止，AI 接口限制为每个 IP 每 10 分钟 6 次。免费实例休眠或重启后，Demo 数据和审计记录会恢复初始状态。
+
 ## 切换 MySQL
 
 1. 安装 MySQL 8，创建数据库 `smartfactory_mes`；如果本机有 Docker，也可执行 `docker compose up -d`。
@@ -149,7 +157,7 @@ RAG 文档位于 `backend/knowledge/`，当前内容是为项目演示编写的�
 npm run check
 ```
 
-该命令依次执行后端自动化测试、前端 ESLint、生产构建和前后端生产依赖审计。当前 14 项测试覆盖登录鉴权、分页、业务校验、生产报工闭环、通知聚合、配置脱敏、延期订单、写 Tool、未授权写操作拦截、审计日志、工业 RAG、业务时区、CORS，以及 OpenAI 兼容接口“模型选工具 → 工具结果回传 → 最终回答”的完整协议闭环。
+该命令依次执行后端自动化测试、前端 ESLint、生产构建和前后端生产依赖审计。当前 15 项测试覆盖登录鉴权、分页、业务校验、生产报工闭环、通知聚合、配置脱敏、公开演示只读保护、延期订单、写 Tool、未授权写操作拦截、审计日志、工业 RAG、业务时区、CORS，以及 OpenAI 兼容接口“模型选工具 → 工具结果回传 → 最终回答”的完整协议闭环。
 
 ## 目录结构
 

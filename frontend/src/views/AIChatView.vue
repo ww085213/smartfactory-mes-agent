@@ -7,7 +7,7 @@ import { aiApi } from '../api/index.js'
 const input = ref('')
 const sending = ref(false)
 const chatBody = ref()
-const agentStatus = ref({ mode: 'local', model: null, tools: 8, writeTools: 1, ragSources: [] })
+const agentStatus = ref({ mode: 'local', model: null, tools: 8, writeTools: 1, ragSources: [], publicDemo: false, configurable: true })
 const aiConfig = ref({ provider: 'deepseek', baseUrl: '', model: '', mode: 'local', keyConfigured: false, maskedKey: '' })
 const recentActions = ref([])
 const settingsVisible = ref(false)
@@ -131,8 +131,8 @@ onMounted(async () => {
     <div class="chat-card panel-card">
       <div class="chat-head">
         <div class="ai-avatar"><el-icon :size="22"><MagicStick /></el-icon><i></i></div>
-        <div><strong>SmartFactory Agent</strong><span>MES Tools + Industrial RAG · {{ agentStatus.mode === 'llm' ? `大模型模式（${agentStatus.model}）` : '本地 Agent 模式' }}</span></div>
-        <div class="chat-actions"><el-button :icon="Setting" text @click="openSettings">模型设置</el-button><el-button text @click="reset">清空会话</el-button></div>
+        <div><strong>SmartFactory Agent</strong><span>MES Tools + Industrial RAG · {{ agentStatus.mode === 'llm' ? `大模型模式（${agentStatus.model}）` : '本地 Agent 模式' }}{{ agentStatus.publicDemo ? ' · 公开只读' : '' }}</span></div>
+        <div class="chat-actions"><el-button v-if="agentStatus.configurable" :icon="Setting" text @click="openSettings">模型设置</el-button><el-button text @click="reset">清空会话</el-button></div>
       </div>
 
       <div ref="chatBody" class="chat-body">
@@ -167,9 +167,9 @@ onMounted(async () => {
     <aside class="ai-sidebar">
       <div class="content-card agent-control">
         <div class="control-kicker"><span>AGENT CONTROL</span><i :class="agentStatus.mode"></i></div>
-        <div class="model-row"><div class="model-logo"><el-icon><Cpu /></el-icon></div><div><strong>{{ agentStatus.mode === 'llm' ? agentStatus.model : 'Local Router' }}</strong><span>{{ agentStatus.mode === 'llm' ? '模型已连接 · Tool Calling' : '本地规则路由模式' }}</span></div><el-button circle text :icon="Setting" aria-label="模型设置" @click="openSettings" /></div>
+        <div class="model-row"><div class="model-logo"><el-icon><Cpu /></el-icon></div><div><strong>{{ agentStatus.mode === 'llm' ? agentStatus.model : 'Local Router' }}</strong><span>{{ agentStatus.publicDemo ? '公开演示 · 只读保护' : agentStatus.mode === 'llm' ? '模型已连接 · Tool Calling' : '本地规则路由模式' }}</span></div><el-button v-if="agentStatus.configurable" circle text :icon="Setting" aria-label="模型设置" @click="openSettings" /></div>
         <div class="agent-metrics"><div><strong>6</strong><span>查询工具</span></div><div><strong>{{ agentStatus.writeTools }}</strong><span>业务操作</span></div><div><strong>{{ agentStatus.ragSources.length }}</strong><span>知识文档</span></div></div>
-        <div class="capability-tags"><span>MES 实时数据</span><span>安全写操作</span><span>来源引用</span></div>
+        <div class="capability-tags"><span>MES 实时数据</span><span>{{ agentStatus.publicDemo ? '公开只读保护' : '安全写操作' }}</span><span>来源引用</span></div>
       </div>
       <div class="agent-flow panel-card">
         <div class="side-title"><div><strong>执行链路</strong><span>当前路由：{{ latestActionType }}</span></div></div>

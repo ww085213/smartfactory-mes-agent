@@ -10,6 +10,7 @@ const demoMode = booleanValue(process.env.DEMO_MODE, true)
 export const config = {
   port: Number(process.env.PORT || 3000),
   demoMode,
+  publicDemo: booleanValue(process.env.PUBLIC_DEMO_MODE, false),
   businessTimezone: process.env.BUSINESS_TIMEZONE || 'Asia/Shanghai',
   databaseUrl: process.env.DATABASE_URL,
   corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(',').map((item) => item.trim()).filter(Boolean),

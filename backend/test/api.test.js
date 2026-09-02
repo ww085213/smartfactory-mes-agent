@@ -111,6 +111,30 @@ test('Agent 写工具可更新设备状态并留下 MUTATION 审计', async () =
   assert.ok(actions.body.data.items.some((item) => item.toolName === 'updateEquipmentStatus' && item.actionType === 'MUTATION'))
 })
 
+test('公开演示模式从服务端拦截 CRUD、模型配置和 Agent 写操作', async () => {
+  const originalPublicDemo = config.publicDemo
+  config.publicDemo = true
+  try {
+    const before = await request(app).get('/api/equipment?search=EQ-008').set(authorized())
+    const equipment = before.body.data.items[0]
+    const [crudResponse, configResponse, agentResponse, statusResponse] = await Promise.all([
+      request(app).put(`/api/equipment/${equipment.id}`).set(authorized()).send({ status: 'MAINTENANCE' }),
+      request(app).put('/api/ai/config').set(authorized()).send({ provider: 'deepseek', model: 'deepseek-v4-pro' }),
+      request(app).post('/api/ai/chat').set(authorized()).send({ message: '把设备 EQ-008 标记为维修' }),
+      request(app).get('/api/ai/status').set(authorized())
+    ])
+    assert.equal(crudResponse.status, 403)
+    assert.equal(configResponse.status, 403)
+    assert.equal(agentResponse.status, 403)
+    assert.equal(statusResponse.body.data.publicDemo, true)
+    assert.equal(statusResponse.body.data.configurable, false)
+    const after = await request(app).get('/api/equipment?search=EQ-008').set(authorized())
+    assert.equal(after.body.data.items[0].status, equipment.status)
+  } finally {
+    config.publicDemo = originalPublicDemo
+  }
+})
+
 test('工业 RAG 返回相关手册片段和来源', async () => {
   const response = await request(app).post('/api/ai/chat').set(authorized()).send({ message: 'CNC 主轴过热应该怎么处理？', history: [] })
   assert.equal(response.status, 200)

@@ -15,7 +15,11 @@ const idOf = (req) => z.coerce.number().int().positive().parse(req.params.id)
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式应为 YYYY-MM-DD')
 const limiterHandler = (req, res) => res.status(429).json({ success: false, message: '请求过于频繁，请稍后再试' })
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: 'draft-8', legacyHeaders: false, handler: limiterHandler })
-const aiLimiter = rateLimit({ windowMs: 60 * 1000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false, handler: limiterHandler })
+const aiLimiter = rateLimit({
+  windowMs: config.publicDemo ? 10 * 60 * 1000 : 60 * 1000,
+  limit: config.publicDemo ? 6 : 20,
+  standardHeaders: 'draft-8', legacyHeaders: false, handler: limiterHandler
+})
 
 const orderFields = {
   orderNo: z.string().trim().min(3).max(30), productName: z.string().trim().min(1).max(100),
@@ -81,6 +85,11 @@ router.post('/auth/login', loginLimiter, wrap(async (req, res) => {
 }))
 
 router.use(requireAuth)
+router.use((req, res, next) => {
+  const writesData = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && req.path !== '/ai/chat'
+  if (config.publicDemo && writesData) return res.status(403).json({ success: false, message: '公开演示环境为只读模式' })
+  next()
+})
 router.get('/auth/me', (req, res) => res.json({ success: true, data: req.user || { name: '演示用户', role: 'ADMIN' } }))
 router.get('/dashboard', wrap(async (req, res) => res.json({ success: true, data: await businessService.getDashboard() })))
 router.get('/notifications', wrap(async (req, res) => res.json({ success: true, data: await businessService.getNotifications() })))
@@ -120,7 +129,8 @@ router.get('/ai/status', (req, res) => res.json({
   success: true,
   data: {
     mode: config.ai.apiKey ? 'llm' : 'local', model: config.ai.apiKey ? config.ai.model : null,
-    tools: 8, writeTools: 1, ragSources: knowledgeService.sources()
+    tools: 8, writeTools: config.publicDemo ? 0 : 1, ragSources: knowledgeService.sources(),
+    publicDemo: config.publicDemo, configurable: !config.publicDemo
   }
 }))
 router.get('/ai/config', (req, res) => res.json({ success: true, data: aiConfigService.getPublic() }))

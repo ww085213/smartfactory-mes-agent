@@ -1,6 +1,7 @@
 import { businessService } from '../services/businessService.js'
 import { knowledgeService } from '../rag/knowledgeService.js'
 import { AppError } from '../utils/errors.js'
+import { config } from '../config.js'
 
 export const toolCatalog = {
   getOrderProgress: { label: '查询订单进度', actionType: 'QUERY' },
@@ -135,6 +136,9 @@ export async function executeTool(name, args = {}, context = {}) {
   const meta = toolCatalog[name]
   if (!meta) throw new AppError(`未知工具：${name}`)
   try {
+    if (meta.actionType === 'MUTATION' && config.publicDemo) {
+      throw new AppError('公开演示环境为只读模式，业务写操作已禁用', 403)
+    }
     if (meta.actionType === 'MUTATION' && context.allowMutation !== true) {
       throw new AppError('写操作已拒绝：用户未明确授权修改设备状态', 403)
     }
